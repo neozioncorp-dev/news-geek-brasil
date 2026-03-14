@@ -18,187 +18,189 @@
   const app = initializeApp(firebaseConfig);
 </script>
 
-<!-- CÓDIGO COMPLETO DO APP - COLE APÓS O SCRIPT DO FIREBASE -->  <script>  
-  // Inicialização do app já conectada ao Firebase (firebaseConfig deve estar acima)  
-  
-  // -------------------------------  
-  // LOGIN GOOGLE  
-  // -------------------------------  
-  const auth = firebase.auth();  
-  const database = firebase.database();  
-  let currentUser = null;  
-  
-  function googleLogin() {  
-    const provider = new firebase.auth.GoogleAuthProvider();  
-    auth.signInWithPopup(provider).then(result => {  
-      currentUser = result.user;  
-      initializeAppForUser();  
-    }).catch(error => console.error(error));  
-  }  
-  
-  // -------------------------------  
-  // INICIALIZAÇÃO DO APP PARA O USUÁRIO  
-  // -------------------------------  
-  function initializeAppForUser() {  
-    loadUserData();  
-    showWelcomeMessage();  
-    loadFeed();  
-    setupAvatars();  
-    setupButtons();  
-  }  
-  
-  function showWelcomeMessage() {  
-    if (!currentUser) return;  
-    alert(`Bem-vindo ao News Geek Brasil, ${currentUser.displayName}! Esperamos que curta a experiência.`);  
-  }  
-  
-  // -------------------------------  
-  // ESCOLHA DE TIME  
-  // -------------------------------  
-  function chooseTeam(teamId, teamName, teamLogo) {  
-    if (!currentUser) return;  
-    database.ref('users/' + currentUser.uid + '/team').set({  
-      id: teamId,  
-      name: teamName,  
-      logo: teamLogo  
-    });  
-    alert(`Você selecionou o time ${teamName}!`);  
-    updateTeamInUI(teamLogo, teamName);  
-  }  
-  
-  function updateTeamInUI(logo, name) {  
-    const topBar = document.getElementById('top-bar');  
-    if (topBar) {  
-      topBar.innerHTML = `<img src="${logo}" style="width:32px;height:32px;margin-right:8px;"> ${name}`;  
-    }  
-  }  
-  
-  function loadUserData() {  
-    if (!currentUser) return;  
-    database.ref('users/' + currentUser.uid).once('value').then(snapshot => {  
-      const data = snapshot.val();  
-      if (data && data.team) updateTeamInUI(data.team.logo, data.team.name);  
-      if (data && data.avatar) setAvatar(data.avatar);  
-    });  
-  }  
-  
-  // -------------------------------  
-  // AVATARES 16-BIT  
-  // -------------------------------  
-  let avatarChoice = null;  
-  function setupAvatars() {  
-    const avatars = document.querySelectorAll('.avatar');  
-    avatars.forEach(av => {  
-      av.addEventListener('click', () => {  
-        avatarChoice = av.dataset.avatar;  
-        if (!currentUser) return;  
-        database.ref('users/' + currentUser.uid + '/avatar').set(avatarChoice);  
-        reactAvatar(av);  
-      });  
-    });  
-  }  
-  
-  function reactAvatar(av) {  
-    // animação simples de reação ao clique  
-    av.style.transform = 'scale(1.2)';  
-    setTimeout(() => av.style.transform = 'scale(1)', 300);  
-  }  
-  
-  function setAvatar(av) {  
-    const userAvatar = document.getElementById('user-avatar');  
-    if (userAvatar) userAvatar.src = av;  
-  }  
-  
-  // -------------------------------  
-  // FEED DE NOTÍCIAS COM SCROLL INFINITO  
-  // -------------------------------  
-  const feedContainer = document.getElementById('feed');  
-  let page = 0;  
-  let loadingFeed = false;  
-  
-  function loadFeed() {  
-    if (loadingFeed) return;  
-    loadingFeed = true;  
-    fetchNews(page).then(newsItems => {  
-      newsItems.forEach(item => addNewsItemToFeed(item));  
-      page++;  
-      loadingFeed = false;  
-    });  
-  }  
-  
-  function fetchNews(page) {  
-    // Simula API de notícias brasileiras  
-    return new Promise(resolve => {  
-      const sampleNews = [  
-        {title:'Notícia A', img:'https://via.placeholder.com/150', category:'Futebol'},  
-        {title:'Notícia B', img:'https://via.placeholder.com/150', category:'Games'},  
-        {title:'Notícia C', img:'https://via.placeholder.com/150', category:'Filmes'},  
-        {title:'Notícia D', img:'https://via.placeholder.com/150', category:'Séries/Animes'}  
-      ];  
-      setTimeout(() => resolve(sampleNews), 500);  
-    });  
-  }  
-  
-  function addNewsItemToFeed(item) {  
-    if (!feedContainer) return;  
-    const div = document.createElement('div');  
-    div.className = 'news-item';  
-    div.innerHTML = `  
-      <img src="${item.img}" style="width:100%;border-radius:8px;">  
-      <h3>${item.title}</h3>  
-      <p>${item.category}</p>  
-    `;  
-    feedContainer.appendChild(div);  
-  }  
-  
-  // -------------------------------  
-  // BOTÕES LIKE/DISLIKE  
-  // -------------------------------  
-  function setupButtons() {  
-    const likeButtons = document.querySelectorAll('.like-btn');  
-    const dislikeButtons = document.querySelectorAll('.dislike-btn');  
-  
-    likeButtons.forEach(btn => btn.addEventListener('click', () => {  
-      btn.style.transform = 'scale(1.2)';  
-      setTimeout(() => btn.style.transform = 'scale(1)', 200);  
-    }));  
-  
-    dislikeButtons.forEach(btn => btn.addEventListener('click', () => {  
-      btn.style.transform = 'scale(1.2)';  
-      setTimeout(() => btn.style.transform = 'scale(1)', 200);  
-    }));  
-  }  
-  
-  // -------------------------------  
-  // TRAILERS E INTERSTICIAIS  
-  // -------------------------------  
-  function showTrailerAlert(title, imageUrl) {  
-    const banner = document.createElement('div');  
-    banner.className = 'trailer-banner';  
-    banner.innerHTML = `<img src="${imageUrl}" style="width:80px;height:45px;margin-right:8px;"> ${title}`;  
-    banner.addEventListener('click', () => openTrailer(title));  
-    document.body.appendChild(banner);  
-    setTimeout(() => banner.remove(), 5000);  
-  }  
-  
-  function openTrailer(title) {  
-    alert(`Abrindo trailer: ${title}`);  
-    // Aqui abriria a tela correspondente do app  
-    showInterstitial();  
-  }  
-  
-  function showInterstitial() {  
-    alert('Exibindo intersticial para monetização');  
-  }  
-  
-  // -------------------------------  
-  // BOTÕES HOME E VOLTAR  
-  // -------------------------------  
-  document.getElementById('btn-home').addEventListener('click', () => {  
-    window.scrollTo({top:0, behavior:'smooth'});  
-  });  
-  
-  document.getElementById('btn-back').addEventListener('click', () => {  
-    window.history.back();  
-  });  
+<!-- CÓDIGO COMPLETO DO APP - COLE APÓS O SCRIPT DO FIREBASE -->
+
+<script>
+  // Inicialização do app já conectada ao Firebase (firebaseConfig deve estar acima)
+
+  // -------------------------------
+  // LOGIN GOOGLE
+  // -------------------------------
+  const auth = firebase.auth();
+  const database = firebase.database();
+  let currentUser = null;
+
+  function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then(result => {
+      currentUser = result.user;
+      initializeAppForUser();
+    }).catch(error => console.error(error));
+  }
+
+  // -------------------------------
+  // INICIALIZAÇÃO DO APP PARA O USUÁRIO
+  // -------------------------------
+  function initializeAppForUser() {
+    loadUserData();
+    showWelcomeMessage();
+    loadFeed();
+    setupAvatars();
+    setupButtons();
+  }
+
+  function showWelcomeMessage() {
+    if (!currentUser) return;
+    alert(`Bem-vindo ao News Geek Brasil, ${currentUser.displayName}! Esperamos que curta a experiência.`);
+  }
+
+  // -------------------------------
+  // ESCOLHA DE TIME
+  // -------------------------------
+  function chooseTeam(teamId, teamName, teamLogo) {
+    if (!currentUser) return;
+    database.ref('users/' + currentUser.uid + '/team').set({
+      id: teamId,
+      name: teamName,
+      logo: teamLogo
+    });
+    alert(`Você selecionou o time ${teamName}!`);
+    updateTeamInUI(teamLogo, teamName);
+  }
+
+  function updateTeamInUI(logo, name) {
+    const topBar = document.getElementById('top-bar');
+    if (topBar) {
+      topBar.innerHTML = `<img src="${logo}" style="width:32px;height:32px;margin-right:8px;"> ${name}`;
+    }
+  }
+
+  function loadUserData() {
+    if (!currentUser) return;
+    database.ref('users/' + currentUser.uid).once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (data && data.team) updateTeamInUI(data.team.logo, data.team.name);
+      if (data && data.avatar) setAvatar(data.avatar);
+    });
+  }
+
+  // -------------------------------
+  // AVATARES 16-BIT
+  // -------------------------------
+  let avatarChoice = null;
+  function setupAvatars() {
+    const avatars = document.querySelectorAll('.avatar');
+    avatars.forEach(av => {
+      av.addEventListener('click', () => {
+        avatarChoice = av.dataset.avatar;
+        if (!currentUser) return;
+        database.ref('users/' + currentUser.uid + '/avatar').set(avatarChoice);
+        reactAvatar(av);
+      });
+    });
+  }
+
+  function reactAvatar(av) {
+    // animação simples de reação ao clique
+    av.style.transform = 'scale(1.2)';
+    setTimeout(() => av.style.transform = 'scale(1)', 300);
+  }
+
+  function setAvatar(av) {
+    const userAvatar = document.getElementById('user-avatar');
+    if (userAvatar) userAvatar.src = av;
+  }
+
+  // -------------------------------
+  // FEED DE NOTÍCIAS COM SCROLL INFINITO
+  // -------------------------------
+  const feedContainer = document.getElementById('feed');
+  let page = 0;
+  let loadingFeed = false;
+
+  function loadFeed() {
+    if (loadingFeed) return;
+    loadingFeed = true;
+    fetchNews(page).then(newsItems => {
+      newsItems.forEach(item => addNewsItemToFeed(item));
+      page++;
+      loadingFeed = false;
+    });
+  }
+
+  function fetchNews(page) {
+    // Simula API de notícias brasileiras
+    return new Promise(resolve => {
+      const sampleNews = [
+        {title:'Notícia A', img:'https://via.placeholder.com/150', category:'Futebol'},
+        {title:'Notícia B', img:'https://via.placeholder.com/150', category:'Games'},
+        {title:'Notícia C', img:'https://via.placeholder.com/150', category:'Filmes'},
+        {title:'Notícia D', img:'https://via.placeholder.com/150', category:'Séries/Animes'}
+      ];
+      setTimeout(() => resolve(sampleNews), 500);
+    });
+  }
+
+  function addNewsItemToFeed(item) {
+    if (!feedContainer) return;
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `
+      <img src="${item.img}" style="width:100%;border-radius:8px;">
+      <h3>${item.title}</h3>
+      <p>${item.category}</p>
+    `;
+    feedContainer.appendChild(div);
+  }
+
+  // -------------------------------
+  // BOTÕES LIKE/DISLIKE
+  // -------------------------------
+  function setupButtons() {
+    const likeButtons = document.querySelectorAll('.like-btn');
+    const dislikeButtons = document.querySelectorAll('.dislike-btn');
+
+    likeButtons.forEach(btn => btn.addEventListener('click', () => {
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => btn.style.transform = 'scale(1)', 200);
+    }));
+
+    dislikeButtons.forEach(btn => btn.addEventListener('click', () => {
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => btn.style.transform = 'scale(1)', 200);
+    }));
+  }
+
+  // -------------------------------
+  // TRAILERS E INTERSTICIAIS
+  // -------------------------------
+  function showTrailerAlert(title, imageUrl) {
+    const banner = document.createElement('div');
+    banner.className = 'trailer-banner';
+    banner.innerHTML = `<img src="${imageUrl}" style="width:80px;height:45px;margin-right:8px;"> ${title}`;
+    banner.addEventListener('click', () => openTrailer(title));
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 5000);
+  }
+
+  function openTrailer(title) {
+    alert(`Abrindo trailer: ${title}`);
+    // Aqui abriria a tela correspondente do app
+    showInterstitial();
+  }
+
+  function showInterstitial() {
+    alert('Exibindo intersticial para monetização');
+  }
+
+  // -------------------------------
+  // BOTÕES HOME E VOLTAR
+  // -------------------------------
+  document.getElementById('btn-home').addEventListener('click', () => {
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  document.getElementById('btn-back').addEventListener('click', () => {
+    window.history.back();
+  });
 </script>
