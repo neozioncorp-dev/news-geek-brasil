@@ -5,101 +5,95 @@
 <title>News Geek Brasil</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* ----------------- RESET E GERAL ----------------- */
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
-body{background-color:#A8D5BA;color:#000;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+body{background:#549F78;color:#000;overflow-x:hidden;transition:0.3s;} /* VERDE ESCURO */
 a{text-decoration:none;color:inherit;}
-button{cursor:pointer;border:none;border-radius:8px;padding:10px 16px;margin:4px;font-weight:bold;transition:transform 0.2s,box-shadow 0.2s;}
+button{cursor:pointer;border:none;border-radius:12px;padding:16px 20px;margin:8px;font-weight:bold;font-size:18px;transition:0.2s;width:90%;display:block;box-shadow:0 4px 6px rgba(0,0,0,0.3);}
 button:active{transform:scale(0.95);}
 
-/* ----------------- CORES ----------------- */
-.home-bg{background-color:#A8D5BA;}
+/* CORES E ESTILO */
+.home-bg{background-color:#549F78;}
 .config-bg{background-color:#D3D3D3;}
-.dark-mode{background-color:#1E1E1E;color:#A8D5BA;}
-button.home-btn{background:#4CAF50;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.3);}
-button.back-btn{background:#f44336;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.3);}
-button.cat-btn{background:#2196F3;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.3);display:block;width:90%;margin:8px auto;}
-button.subcat-btn{background:#FF9800;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.3);display:block;width:85%;margin:6px auto;}
-button.config-btn{background:#4CAF50;color:#fff;box-shadow:0 4px 6px rgba(0,0,0,0.3);}
+.dark-mode{background:#1E1E1E;color:#A8D5BA;}
+button.home-btn{background:#4CAF50;color:#fff;}
+button.cat-btn{background:#2196F3;color:#fff;}
+button.subcat-btn{background:#FF9800;color:#fff;}
+button.config-btn{background:#4CAF50;color:#fff;}
 
-/* ----------------- FEED E SCROLL ----------------- */
+/* FEED E SCROLL */
 #feed, .subfeed{width:100%;overflow:hidden;}
-.news-item{margin:8px auto;padding:8px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:90%;}
-.news-item img{width:100%;border-radius:6px;}
+.news-item{margin:8px auto;padding:8px;background:#fff;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:90%;}
+.news-item img{width:100%;border-radius:8px;}
 .ticker{background:#555;color:#FFF;padding:4px 8px;overflow:hidden;white-space:nowrap;}
 .ticker span{display:inline-block;padding:0 16px;}
 
-/* ----------------- BANNER ----------------- */
+/* BANNER */
 #footer-banner{position:fixed;bottom:0;width:100%;height:50px;background:#333;color:#fff;text-align:center;line-height:50px;font-weight:bold;}
 
-/* ----------------- CONFIG ----------------- */
-#config-panel{padding:16px;}
+/* CONFIGURAÇÕES */
+#config-panel{padding:16px;display:none;}
 #config-panel label{display:block;margin:8px 0;font-weight:bold;}
 </style>
 </head>
 <body class="home-bg">
 
-<!-- ----------------- TICKER CRIPTOMOEDAS ----------------- -->
+<!-- TICKER CRIPTOMOEDAS -->
 <div class="ticker" id="crypto-ticker"></div>
 
-<!-- ----------------- FEED PRINCIPAL ----------------- -->
+<!-- FEED PRINCIPAL -->
 <div id="feed"></div>
 
-<!-- ----------------- BOTÕES FIXOS ----------------- -->
+<!-- BOTÃO HOME FIXO -->
 <div style="position:fixed;top:8px;right:8px;">
 <button id="btn-home" class="home-btn">Home</button>
-<button id="btn-back" class="back-btn">Voltar</button>
 </div>
 
-<!-- ----------------- BANNER ----------------- -->
+<!-- BANNER -->
 <div id="footer-banner">Banner Fixo de Monetização</div>
 
-<!-- ----------------- CONFIGURAÇÕES ----------------- -->
-<div id="config-panel" class="config-bg" style="display:none;">
+<!-- CONFIGURAÇÕES -->
+<div id="config-panel" class="config-bg">
 <h2>Configurações</h2>
-<label>
-<input type="checkbox" id="darkmode-toggle"> Dark Mode
-</label>
-<p>Política de Privacidade resumida: Este app coleta dados apenas para melhorar experiência. <a href="https://drive.google.com/file/d/SEU_LINK_AQUI" target="_blank">Leia completa</a></p>
+<label><input type="checkbox" id="darkmode-toggle"> Dark Mode</label>
+<p>Política de Privacidade resumida: Este app coleta dados apenas para melhorar a experiência. <a href="https://drive.google.com/file/d/SEU_LINK_AQUI" target="_blank">Leia completa</a></p>
 <p>Contato: <a href="mailto:neozion.corp@gmail.com">neozion.corp@gmail.com</a></p>
 </div>
 
-<!-- ----------------- FIREBASE ----------------- -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
-
-/* -------- CONFIG FIREBASE -------- */
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// CONFIGURAÇÃO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDBxvbmmMSlOSzJMDMAISNjELLER90-Itw",
   authDomain: "news-geek-brasil.firebaseapp.com",
+  databaseURL: "https://news-geek-brasil-default-rtdb.firebaseio.com",
   projectId: "news-geek-brasil",
-  storageBucket: "news-geek-brasil.firebasestorage.app",
+  storageBucket: "news-geek-brasil.appspot.com",
   messagingSenderId: "275382580088",
   appId: "1:275382580088:web:4d317851a905abe5058e8d"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
 
-/* -------- USUÁRIO -------- */
 let currentUser = null;
 
-async function googleLogin() {
-  const provider = new GoogleAuthProvider();
-  try {
-    const result = await signInWithPopup(auth, provider);
-    currentUser = result.user;
+// LOGIN GOOGLE
+function googleLogin(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(res=>{
+    currentUser=res.user;
     alert(`Bem-vindo ao News Geek Brasil, ${currentUser.displayName}!`);
     loadFeed();
     loadTicker();
     setupDarkMode();
     setupAutoRating();
-  } catch(e) {console.error(e);}
+  }).catch(console.error);
 }
+googleLogin();
 
-/* -------- FEED PRINCIPAL -------- */
+// FEED PRINCIPAL
 const feed = document.getElementById('feed');
 const categories = [
   {name:'Games', subcats:['Lançamentos do mês','Melhor avaliados','Destaque por plataforma','Em promoção','Destaques por console']},
@@ -108,102 +102,88 @@ const categories = [
   {name:'Futebol', subcats:['Últimas notícias','Campeonatos','Destaques','Transferências','Entrevistas']}
 ];
 
-function loadFeed() {
-  feed.innerHTML = '';
-  categories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn';
-    btn.textContent = cat.name;
-    btn.onclick = () => openSubcategory(cat);
+function loadFeed(){
+  feed.innerHTML='';
+  categories.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='cat-btn'; btn.textContent=cat.name;
+    btn.onclick=()=>openSubcategory(cat);
     feed.appendChild(btn);
   });
 }
 
-function openSubcategory(cat) {
-  feed.innerHTML = '';
-  const subfeed = document.createElement('div');
-  subfeed.className = 'subfeed';
-  feed.appendChild(subfeed);
-  let i = 0;
-  function loopSubcats() {
-    subfeed.innerHTML = '';
+// SUBCATEGORIAS
+function openSubcategory(cat){
+  feed.innerHTML=''; const subfeed=document.createElement('div'); subfeed.className='subfeed';
+  feed.appendChild(subfeed); let i=0;
+  function loopSubcats(){
+    subfeed.innerHTML='';
     const subcat = cat.subcats[i % cat.subcats.length];
-    const btn = document.createElement('button');
-    btn.className = 'subcat-btn';
-    btn.textContent = subcat;
-    btn.onclick = () => openArticle(cat.name, subcat);
-    subfeed.appendChild(btn);
-    i++;
+    const btn=document.createElement('button'); btn.className='subcat-btn'; btn.textContent=subcat;
+    btn.onclick=()=>openArticle(cat.name,subcat);
+    subfeed.appendChild(btn); i++;
     setTimeout(loopSubcats,2000);
   }
   loopSubcats();
 }
 
-function openArticle(cat, subcat) {
-  feed.innerHTML = `<h2>${cat} → ${subcat}</h2><p>Conteúdo da matéria com imagens e links reais aqui.</p>
+// ABRIR MATÉRIA
+function openArticle(cat,subcat){
+  feed.innerHTML=`<h2>${cat} → ${subcat}</h2>
+  <p>Conteúdo da matéria com imagens e links reais.</p>
   <button id="like-btn" class="cat-btn">Like</button>
-  <button id="dislike-btn" class="cat-btn">Dislike</button>`;
+  <button id="dislike-btn" class="cat-btn">Dislike</button>
+  <button id="back-btn" class="back-btn">Voltar</button>`;
   
-  document.getElementById('like-btn').onclick = () => {
-    if(currentUser) set(ref(database,'users/'+currentUser.uid+'/likes/'+cat+'/'+subcat),true);
+  document.getElementById('like-btn').onclick=()=>{
+    if(currentUser)database.ref('users/'+currentUser.uid+'/likes/'+cat+'/'+subcat).set(true);
     alert('Você curtiu a matéria!');
   };
-  document.getElementById('dislike-btn').onclick = () => {
-    if(currentUser) set(ref(database,'users/'+currentUser.uid+'/dislikes/'+cat+'/'+subcat),true);
+  document.getElementById('dislike-btn').onclick=()=>{
+    if(currentUser)database.ref('users/'+currentUser.uid+'/dislikes/'+cat+'/'+subcat).set(true);
     alert('Você não gostou da matéria!');
   };
+  document.getElementById('back-btn').onclick=()=>loadFeed();
 }
 
-/* -------- TICKER CRIPTOMOEDAS -------- */
-const cryptoTick = document.getElementById('crypto-ticker');
-const cryptos = ['BTC 274.000', 'ETH 17.800', 'BNB 2.200', 'SOL 220', 'ADA 1.50', 'DOGE 0.07'];
-let tickerIndex = 0;
-function loadTicker() {
-  function scrollTicker() {
-    cryptoTick.innerHTML = '';
+// TICKER CRIPTOMOEDAS
+const cryptoTick=document.getElementById('crypto-ticker');
+const cryptos=['BTC 274.000','ETH 17.800','BNB 2.200','SOL 220','ADA 1.50','DOGE 0.07'];
+let tickerIndex=0;
+function loadTicker(){
+  function scrollTicker(){
+    cryptoTick.innerHTML='';
     for(let i=0;i<cryptos.length;i++){
-      const span = document.createElement('span');
-      span.textContent = cryptos[(tickerIndex+i)%cryptos.length];
+      const span=document.createElement('span'); span.textContent=cryptos[(tickerIndex+i)%cryptos.length];
       cryptoTick.appendChild(span);
     }
-    tickerIndex++;
-    setTimeout(scrollTicker,1500);
+    tickerIndex++; setTimeout(scrollTicker,1500);
   }
   scrollTicker();
 }
 
-/* -------- DARK MODE -------- */
-function setupDarkMode() {
-  const toggle = document.getElementById('darkmode-toggle');
-  toggle.onchange = () => {
-    document.body.classList.toggle('dark-mode',toggle.checked);
-  };
+// DARK MODE
+function setupDarkMode(){
+  const toggle=document.getElementById('darkmode-toggle');
+  toggle.onchange=()=>{document.body.classList.toggle('dark-mode',toggle.checked);}
 }
 
-/* -------- BOTÕES HOME/VOLTAR -------- */
-document.getElementById('btn-home').onclick = () => loadFeed();
-document.getElementById('btn-back').onclick = () => window.history.back();
+// BOTÃO HOME
+document.getElementById('btn-home').onclick=()=>loadFeed();
 
-/* -------- AVALIAÇÃO 5 ESTRELAS -------- */
-function setupAutoRating() {
-  let articlesRead = 0;
-  const start = Date.now();
-  function checkRating() {
-    const elapsed = (Date.now()-start)/1000;
+// AVALIAÇÃO 5 ESTRELAS
+function setupAutoRating(){
+  let articlesRead=0; const start=Date.now();
+  function checkRating(){
+    const elapsed=(Date.now()-start)/1000;
     if(articlesRead>=2 || elapsed>120){
       if(confirm('Gostou do app? Avalie com 5 estrelas!')){
         window.open('https://play.google.com/store/apps/details?id=SEU_APP_ID','_blank');
       }
-    } else setTimeout(checkRating,5000);
+    }else setTimeout(checkRating,5000);
   }
-  const originalOpenArticle = openArticle;
-  openArticle = (cat,subcat)=>{
-    articlesRead++;
-    originalOpenArticle(cat,subcat);
-  };
+  const originalOpen=openArticle;
+  openArticle=(cat,subcat)=>{articlesRead++; originalOpen(cat,subcat);}
   checkRating();
 }
-
-/* -------- LOGIN AUTOMÁTICO NA PRIMEIRA VISITA -------- */
-googleLogin();
 </script>
