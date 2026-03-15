@@ -2,131 +2,163 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>News Geek Brasil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- Firebase -->
+  <title>Noticias Geek Brasil</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js"></script>
   <style>
-    body {margin:0;font-family:Arial,sans-serif;background:#1a1a1a;color:#fff;}
-    header {padding:15px;background:#1a1a1a;color:#fff;font-size:26px;font-weight:bold;text-align:left;}
-    .user-bar {display:flex;align-items:center;justify-content:space-between;background:#1a1a1a;padding:10px;border-bottom:3px solid orange;}
-    .user-info {display:flex;align-items:center;}
-    .avatar {width:40px;height:40px;border-radius:50%;margin-right:10px;transition:0.3s;}
-    .username {font-size:18px;}
-    .team-shield {width:40px;height:40px;}
-    .settings {font-size:22px;color:#0ff;cursor:pointer;}
-    .crypto-bar {background:#333;border:2px solid orange;color:#fff;overflow-x:auto;white-space:nowrap;padding:10px;}
-    .crypto-item {display:inline-block;margin-right:20px;font-size:16px;}
-    .crypto-up {color:lime;}
-    .crypto-down {color:red;}
-    .btn {display:block;width:90%;margin:15px auto;padding:20px;font-size:20px;color:#fff;border:none;border-radius:10px;box-shadow:0 6px #000;cursor:pointer;transition:0.2s;}
-    .btn:active {box-shadow:0 2px #000;transform:translateY(4px);}
-    .btn-games {background:linear-gradient(#1e90ff,#104e8b);}
-    .btn-filmes {background:linear-gradient(#ff4500,#8b2500);}
-    .btn-series {background:linear-gradient(#32cd32,#006400);}
-    .btn-futebol {background:linear-gradient(#ffd700,#b8860b);}
-    .btn-cripto {background:linear-gradient(#ffa500,#ff8c00);}
-    .btn-trailers {background:linear-gradient(#9370db,#4b0082);}
-    .banner {position:fixed;bottom:0;width:100%;background:#222;color:#fff;text-align:center;padding:10px;border-top:3px solid orange;}
-    .config-panel {display:none;position:fixed;top:0;right:0;width:250px;height:100%;background:#1a1a1a;color:#fff;padding:20px;border-left:3px solid orange;}
-    .config-panel h2 {color:#0ff;}
-    .config-panel input {margin-right:10px;}
-    .avatar.gol {box-shadow:0 0 15px lime;}
-    .avatar.amarelo {box-shadow:0 0 15px yellow;}
-    .avatar.vermelho {box-shadow:0 0 15px red;}
+    body {
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:rgba(0,0,0,0.7);
+      color:#fff;
+    }
+    header {
+      background:rgba(0,0,0,0.7);
+      padding:10px;
+      text-align:center;
+    }
+    .btn {
+      margin:5px;
+      padding:10px 20px;
+      background:rgba(0,0,0,0.7);
+      color:#fff;
+      border:none;
+      cursor:pointer;
+    }
+    .settings {
+      position:absolute;
+      top:10px;
+      right:10px;
+      cursor:pointer;
+    }
+    #configPanel {
+      display:none;
+      position:fixed;
+      top:0;
+      right:0;
+      width:250px;
+      height:100%;
+      background:rgba(0,0,0,0.7);
+      padding:20px;
+    }
+    #banner {
+      position:fixed;
+      bottom:0;
+      width:100%;
+      background:rgba(0,0,0,0.7);
+      text-align:center;
+      padding:10px;
+    }
+    #cryptoBar {
+      background:rgba(0,0,0,0.7);
+      padding:10px;
+      text-align:center;
+    }
+    #avatar {
+      width:50px;
+      height:50px;
+      border-radius:50%;
+    }
   </style>
 </head>
 <body>
-  <header>News Geek Brasil</header>
+  <header>
+    <h1>Noticias Geek Brasil</h1>
+    <img id="avatar" src="" alt="Avatar">
+    <span id="username"></span>
+    <i class="fa-solid fa-gear settings" onclick="toggleConfig()">⚙️</i>
+  </header>
 
-  <!-- Barra de perfil -->
-  <div class="user-bar">
-    <div class="user-info">
-      <img src="assets/images/avatar.png" class="avatar" id="avatar">
-      <span class="username" id="username">Usuário</span>
-    </div>
-    <img src="assets/images/team-shield.png" class="team-shield" id="teamShield">
-    <i class="fa-solid fa-gear settings" onclick="toggleConfig()"></i>
+  <!-- Botões de categorias -->
+  <div>
+    <button class="btn" onclick="abrirGames()">Games</button>
+    <button class="btn" onclick="abrirFilmes()">Filmes</button>
+    <button class="btn" onclick="abrirSeries()">Séries & Animes</button>
+    <button class="btn" onclick="abrirFutebol()">Futebol</button>
+    <button class="btn" onclick="abrirCripto()">Criptomoedas</button>
+    <button class="btn" onclick="abrirTrailers()">Trailers da Semana</button>
   </div>
 
-  <!-- Barra de criptomoedas -->
-  <div class="crypto-bar" id="cryptoBar">Carregando cotações...</div>
-
-  <!-- Botões principais -->
-  <button class="btn btn-games"><i class="fa-solid fa-gamepad"></i> Games</button>
-  <button class="btn btn-filmes"><i class="fa-solid fa-film"></i> Filmes</button>
-  <button class="btn btn-series"><i class="fa-solid fa-tv"></i> Séries & Animes</button>
-  <button class="btn btn-futebol"><i class="fa-solid fa-futbol"></i> Futebol</button>
-  <button class="btn btn-cripto"><i class="fa-brands fa-bitcoin"></i> Criptomoedas</button>
-  <button class="btn btn-trailers"><i class="fa-solid fa-video"></i> Trailers da Semana</button>
-
-  <!-- Configurações -->
-  <div class="config-panel" id="configPanel">
-    <h2>Configurações</h2>
-    <p><input type="checkbox" id="notifToggle" checked> Notificações internas</p>
-    <p><input type="checkbox" id="soundToggle" checked> Som de gol</p>
-    <p>Política de Privacidade: <a href="https://drive.google.com/drive/folders/1IsfjqpfKfHM3XjzNi1pQMoX5PideW9Iq" target="_blank">Ver documento</a></p>
-    <p>Contato: neozion.corp@gmail.com</p>
-    <p>Sobre nós</p>
+  <!-- Painel de Configurações -->
+  <div id="configPanel">
+    <h3>Configurações</h3>
+    <label><input type="checkbox" id="notifCheck"> Notificações internas</label><br>
+    <label><input type="checkbox" id="soundCheck"> Som de gol</label><br>
+    <button onclick="toggleConfig()">Fechar</button>
   </div>
+
+  <!-- Barra de Criptomoedas -->
+  <div id="cryptoBar">Carregando preços de criptomoedas...</div>
 
   <!-- Banner fixo -->
-  <div class="banner">Banner de monetização fixo</div>
+  <div id="banner">Banner fixo - Noticias Geek Brasil</div>
 
-  <!-- Áudio de gol -->
-  <audio id="golAudio" src="assets/audio/gol.mp3" preload="auto"></audio>
+<script>
+  // Firebase Config (substitua pelas suas chaves reais)
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
 
-  <script>
-    // Firebase config (placeholder)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
-
-    // Configurações
-    function toggleConfig() {
-      const panel = document.getElementById("configPanel");
-      panel.style.display = panel.style.display === "block" ? "none" : "block";
+  // Login Firebase
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.onAuthStateChanged(user => {
+    if(user){
+      document.getElementById("username").textContent = user.displayName;
+      document.getElementById("avatar").src = user.photoURL;
+    } else {
+      auth.signInWithPopup(provider);
     }
+  });
 
-    let notifAtivas = true;
-    let somGolAtivo = true;
+  // Configurações
+  function toggleConfig(){
+    const panel = document.getElementById("configPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+  }
 
-    document.getElementById("notifToggle").addEventListener("change", e => {
-      notifAtivas = e.target.checked;
-    });
-    document.getElementById("soundToggle").addEventListener("change", e => {
-      somGolAtivo = e.target.checked;
-    });
+  // Botões de categorias
+  function abrirGames(){ window.location.href="games.html"; }
+  function abrirFilmes(){ window.location.href="filmes.html"; }
+  function abrirSeries(){ window.location.href="series.html"; }
+  function abrirFutebol(){ window.location.href="futebol.html"; }
+  function abrirCripto(){ window.location.href="cripto.html"; }
+  function abrirTrailers(){ window.location.href="trailers.html"; }
 
-    // Registrar token se notificações estiverem ativas
-    if (notifAtivas) {
-      messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
-        .then(token => {
-          console.log("Token de push:", token);
-          // Salve esse token no servidor para enviar notificações
-        });
+  // Barra de Criptomoedas
+  async function atualizarCripto(){
+    try{
+      const resp = await fetch("https://api.coindesk.com/v1/bpi/currentprice.json");
+      const data = await resp.json();
+      document.getElementById("cryptoBar").textContent =
+        "BTC: $" + data.bpi.USD.rate + " | Atualizado";
+    }catch(e){
+      document.getElementById("cryptoBar").textContent = "Erro ao carregar preços.";
     }
+  }
+  setInterval(atualizarCripto, 300000); // 5 minutos
+  atualizarCripto();
 
-    // Listener para notificações recebidas em primeiro plano
-    messaging.onMessage(payload => {
-      if (somGolAtivo) document.getElementById('golAudio').play();
-      alert(payload.notification.title + ": " + payload.notification.body);
-    });
+  // Avatar reativo (exemplo simples)
+  function animarAvatar(evento){
+    const avatar = document.getElementById("avatar");
+    if(evento==="gol"){ avatar.style.border="3px solid green"; }
+    if(evento==="amarelo"){ avatar.style.border="3px solid yellow"; }
+    if(evento==="vermelho"){ avatar.style.border="3px solid red"; }
+    setTimeout(()=>{ avatar.style.border="none"; },2000);
+  }
 
-    // Avatar reativo
-    function eventoGol() {
-      const avatar = document.getElementById("avatar");
-      avatar.classList.add("gol");
-      if (somGolAtivo) document.getElementById("golAudio").play();
-      setTimeout(()=>avatar.classList.remove("gol"),2000);
-    }
+  // FCM (notificações push)
+  const messaging = firebase.messaging();
+  messaging.getToken({ vapidKey: "SUA_VAPID_KEY" }).then(token=>{
+    console.log("Token FCM:", token);
+  });
+</script>
+</body>
+</html>
