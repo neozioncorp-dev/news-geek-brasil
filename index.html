@@ -1,189 +1,126 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>News Geek Brasil</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
-body{background:#549F78;color:#000;overflow-x:hidden;transition:0.3s;} /* VERDE ESCURO */
-a{text-decoration:none;color:inherit;}
-button{cursor:pointer;border:none;border-radius:12px;padding:16px 20px;margin:8px;font-weight:bold;font-size:18px;transition:0.2s;width:90%;display:block;box-shadow:0 4px 6px rgba(0,0,0,0.3);}
-button:active{transform:scale(0.95);}
-
-/* CORES E ESTILO */
-.home-bg{background-color:#549F78;}
-.config-bg{background-color:#D3D3D3;}
-.dark-mode{background:#1E1E1E;color:#A8D5BA;}
-button.home-btn{background:#4CAF50;color:#fff;}
-button.cat-btn{background:#2196F3;color:#fff;}
-button.subcat-btn{background:#FF9800;color:#fff;}
-button.config-btn{background:#4CAF50;color:#fff;}
-
-/* FEED E SCROLL */
-#feed, .subfeed{width:100%;overflow:hidden;}
-.news-item{margin:8px auto;padding:8px;background:#fff;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:90%;}
-.news-item img{width:100%;border-radius:8px;}
-.ticker{background:#555;color:#FFF;padding:4px 8px;overflow:hidden;white-space:nowrap;}
-.ticker span{display:inline-block;padding:0 16px;}
-
-/* BANNER */
-#footer-banner{position:fixed;bottom:0;width:100%;height:50px;background:#333;color:#fff;text-align:center;line-height:50px;font-weight:bold;}
-
-/* CONFIGURAÇÕES */
-#config-panel{padding:16px;display:none;}
-#config-panel label{display:block;margin:8px 0;font-weight:bold;}
-</style>
+  <meta charset="UTF-8">
+  <title>News Geek Brasil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <style>
+    body {margin:0;font-family:Arial,sans-serif;background:#000;color:#fff;}
+    header {text-align:center;padding:20px;background:#111;color:#0ff;font-size:24px;font-weight:bold;}
+    .btn {display:block;width:90%;margin:15px auto;padding:20px;font-size:20px;color:#fff;border:none;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.5);cursor:pointer;}
+    .btn-games {background:linear-gradient(#1e90ff,#104e8b);}
+    .btn-filmes {background:linear-gradient(#ff4500,#8b2500);}
+    .btn-series {background:linear-gradient(#32cd32,#006400);}
+    .btn-futebol {background:linear-gradient(#ffd700,#b8860b);}
+    .btn-cripto {background:linear-gradient(#ffa500,#ff8c00);}
+    .btn-trailers {background:linear-gradient(#9370db,#4b0082);}
+    .section {padding:20px;}
+    .ticker {background:#ffa500;color:#000;overflow:hidden;white-space:nowrap;}
+    .ticker span {display:inline-block;padding-right:50px;animation:scroll 30s linear infinite;}
+    @keyframes scroll {from{transform:translateX(100%);}to{transform:translateX(-100%);}}
+    .config {background:#d3d3d3;color:#549F78;padding:20px;}
+    .config a {color:#0ff;text-decoration:none;}
+  </style>
 </head>
-<body class="home-bg">
+<body>
+  <header>NEWS GEEK BRASIL</header>
 
-<!-- TICKER CRIPTOMOEDAS -->
-<div class="ticker" id="crypto-ticker"></div>
+  <!-- Botões principais -->
+  <button class="btn btn-games"><i class="fa-solid fa-gamepad"></i> Games</button>
+  <button class="btn btn-filmes"><i class="fa-solid fa-film"></i> Filmes</button>
+  <button class="btn btn-series"><i class="fa-solid fa-tv"></i> Séries & Animes</button>
+  <button class="btn btn-futebol"><i class="fa-solid fa-futbol"></i> Futebol</button>
+  <button class="btn btn-cripto"><i class="fa-brands fa-bitcoin"></i> Criptomoedas</button>
+  <button class="btn btn-trailers"><i class="fa-solid fa-video"></i> Trailers da Semana</button>
 
-<!-- FEED PRINCIPAL -->
-<div id="feed"></div>
+  <!-- Criptomoedas -->
+  <div class="section" style="background:#ffa500;color:#000;">
+    <h2>Criptomoedas</h2>
+    <div class="ticker" id="cryptoTicker"><span>Carregando preços...</span></div>
+    <div id="crypto-news">
+      <marquee direction="up" scrollamount="2" height="200" id="cryptoFeed">
+        <p>Carregando notícias...</p>
+      </marquee>
+    </div>
+  </div>
 
-<!-- BOTÃO HOME FIXO -->
-<div style="position:fixed;top:8px;right:8px;">
-<button id="btn-home" class="home-btn">Home</button>
-</div>
+  <!-- Configurações -->
+  <div class="config">
+    <h2>Configurações</h2>
+    <p><input type="checkbox" checked> Dark Mode</p>
+    <p><input type="checkbox" checked> Notificações internas</p>
+    <p><button>Trocar Avatar</button></p>
+    <p><button>Trocar Time Favorito</button></p>
+    <p>Política de Privacidade: <a href="https://drive.google.com/drive/folders/1IsfjqpfKfHM3XjzNi1pQMoX5PideW9Iq" target="_blank">Ver documento completo</a></p>
+    <p>Contato: neozion.corp@gmail.com</p>
+    <p>Sobre nós</p>
+  </div>
 
-<!-- BANNER -->
-<div id="footer-banner">Banner Fixo de Monetização</div>
+  <!-- Áudio de gol -->
+  <audio id="golAudio" src="assets/audio/gol.mp3" preload="auto"></audio>
 
-<!-- CONFIGURAÇÕES -->
-<div id="config-panel" class="config-bg">
-<h2>Configurações</h2>
-<label><input type="checkbox" id="darkmode-toggle"> Dark Mode</label>
-<p>Política de Privacidade resumida: Este app coleta dados apenas para melhorar a experiência. <a href="https://drive.google.com/file/d/SEU_LINK_AQUI" target="_blank">Leia completa</a></p>
-<p>Contato: <a href="mailto:neozion.corp@gmail.com">neozion.corp@gmail.com</a></p>
-</div>
+  <script>
+    // Firebase config (placeholder)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-// CONFIGURAÇÃO FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyDBxvbmmMSlOSzJMDMAISNjELLER90-Itw",
-  authDomain: "news-geek-brasil.firebaseapp.com",
-  databaseURL: "https://news-geek-brasil-default-rtdb.firebaseio.com",
-  projectId: "news-geek-brasil",
-  storageBucket: "news-geek-brasil.appspot.com",
-  messagingSenderId: "275382580088",
-  appId: "1:275382580088:web:4d317851a905abe5058e8d"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const database = firebase.database();
+    // Login Google
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then(result => {
+        const user = result.user;
+        console.log("Usuário logado:", user.displayName);
+      });
 
-let currentUser = null;
-
-// LOGIN GOOGLE
-function googleLogin(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(res=>{
-    currentUser=res.user;
-    alert(`Bem-vindo ao News Geek Brasil, ${currentUser.displayName}!`);
-    loadFeed();
-    loadTicker();
-    setupDarkMode();
-    setupAutoRating();
-  }).catch(console.error);
-}
-googleLogin();
-
-// FEED PRINCIPAL
-const feed = document.getElementById('feed');
-const categories = [
-  {name:'Games', subcats:['Lançamentos do mês','Melhor avaliados','Destaque por plataforma','Em promoção','Destaques por console']},
-  {name:'Filmes', subcats:['Estreias','Clássicos','Destaques','Prêmios','Lançamentos']},
-  {name:'Séries/Animes', subcats:['Novidades','Mais assistidos','Destaques','Temporadas','Recomendados']},
-  {name:'Futebol', subcats:['Últimas notícias','Campeonatos','Destaques','Transferências','Entrevistas']}
-];
-
-function loadFeed(){
-  feed.innerHTML='';
-  categories.forEach(cat=>{
-    const btn=document.createElement('button');
-    btn.className='cat-btn'; btn.textContent=cat.name;
-    btn.onclick=()=>openSubcategory(cat);
-    feed.appendChild(btn);
-  });
-}
-
-// SUBCATEGORIAS
-function openSubcategory(cat){
-  feed.innerHTML=''; const subfeed=document.createElement('div'); subfeed.className='subfeed';
-  feed.appendChild(subfeed); let i=0;
-  function loopSubcats(){
-    subfeed.innerHTML='';
-    const subcat = cat.subcats[i % cat.subcats.length];
-    const btn=document.createElement('button'); btn.className='subcat-btn'; btn.textContent=subcat;
-    btn.onclick=()=>openArticle(cat.name,subcat);
-    subfeed.appendChild(btn); i++;
-    setTimeout(loopSubcats,2000);
-  }
-  loopSubcats();
-}
-
-// ABRIR MATÉRIA
-function openArticle(cat,subcat){
-  feed.innerHTML=`<h2>${cat} → ${subcat}</h2>
-  <p>Conteúdo da matéria com imagens e links reais.</p>
-  <button id="like-btn" class="cat-btn">Like</button>
-  <button id="dislike-btn" class="cat-btn">Dislike</button>
-  <button id="back-btn" class="back-btn">Voltar</button>`;
-  
-  document.getElementById('like-btn').onclick=()=>{
-    if(currentUser)database.ref('users/'+currentUser.uid+'/likes/'+cat+'/'+subcat).set(true);
-    alert('Você curtiu a matéria!');
-  };
-  document.getElementById('dislike-btn').onclick=()=>{
-    if(currentUser)database.ref('users/'+currentUser.uid+'/dislikes/'+cat+'/'+subcat).set(true);
-    alert('Você não gostou da matéria!');
-  };
-  document.getElementById('back-btn').onclick=()=>loadFeed();
-}
-
-// TICKER CRIPTOMOEDAS
-const cryptoTick=document.getElementById('crypto-ticker');
-const cryptos=['BTC 274.000','ETH 17.800','BNB 2.200','SOL 220','ADA 1.50','DOGE 0.07'];
-let tickerIndex=0;
-function loadTicker(){
-  function scrollTicker(){
-    cryptoTick.innerHTML='';
-    for(let i=0;i<cryptos.length;i++){
-      const span=document.createElement('span'); span.textContent=cryptos[(tickerIndex+i)%cryptos.length];
-      cryptoTick.appendChild(span);
+    // Notificação de gol
+    function notifyGol() {
+      document.getElementById('golAudio').play();
+      alert("GOOOOL do seu time!");
     }
-    tickerIndex++; setTimeout(scrollTicker,1500);
-  }
-  scrollTicker();
-}
 
-// DARK MODE
-function setupDarkMode(){
-  const toggle=document.getElementById('darkmode-toggle');
-  toggle.onchange=()=>{document.body.classList.toggle('dark-mode',toggle.checked);}
-}
-
-// BOTÃO HOME
-document.getElementById('btn-home').onclick=()=>loadFeed();
-
-// AVALIAÇÃO 5 ESTRELAS
-function setupAutoRating(){
-  let articlesRead=0; const start=Date.now();
-  function checkRating(){
-    const elapsed=(Date.now()-start)/1000;
-    if(articlesRead>=2 || elapsed>120){
-      if(confirm('Gostou do app? Avalie com 5 estrelas!')){
-        window.open('https://play.google.com/store/apps/details?id=SEU_APP_ID','_blank');
+    // Conteúdo dinâmico: Criptomoedas via CoinGecko
+    async function loadCrypto() {
+      try {
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,cardano,dogecoin&vs_currencies=usd");
+        const data = await res.json();
+        document.getElementById("cryptoTicker").innerHTML =
+          `<span>BTC: $${data.bitcoin.usd} | ETH: $${data.ethereum.usd} | ADA: $${data.cardano.usd} | DOGE: $${data.dogecoin.usd}</span>`;
+      } catch(e) {
+        console.error("Erro ao carregar preços", e);
       }
-    }else setTimeout(checkRating,5000);
-  }
-  const originalOpen=openArticle;
-  openArticle=(cat,subcat)=>{articlesRead++; originalOpen(cat,subcat);}
-  checkRating();
-}
-</script>
+    }
+    loadCrypto();
+    setInterval(loadCrypto, 300000); // Atualiza a cada 5 min
+
+    // Conteúdo dinâmico: Notícias via Google News RSS
+    async function loadNews() {
+      try {
+        const res = await fetch("https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt");
+        const json = await res.json();
+        let html = "";
+        json.items.slice(0,8).forEach(a => {
+          html += `<p><img src="${a.enclosure?.link || 'https://via.placeholder.com/50'}" width="50"> ${a.title}</p>`;
+        });
+        document.getElementById("cryptoFeed").innerHTML = html;
+      } catch(e) {
+        console.error("Erro ao carregar notícias", e);
+      }
+    }
+    loadNews();
+  </script>
+</body>
+</html>
