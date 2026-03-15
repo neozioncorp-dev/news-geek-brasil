@@ -9,27 +9,52 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js"></script>
   <style>
-    body {margin:0;font-family:Arial,sans-serif;background:#000;color:#fff;}
-    header {text-align:center;padding:20px;background:#111;color:#0ff;font-size:24px;font-weight:bold;}
-    .btn {display:block;width:90%;margin:15px auto;padding:20px;font-size:20px;color:#fff;border:none;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.5);cursor:pointer;}
+    body {margin:0;font-family:Arial,sans-serif;background:#1a1a1a;color:#fff;}
+    header {padding:15px;background:#1a1a1a;color:#fff;font-size:26px;font-weight:bold;text-align:left;}
+    .user-bar {display:flex;align-items:center;justify-content:space-between;background:#1a1a1a;padding:10px;border-bottom:3px solid orange;}
+    .user-info {display:flex;align-items:center;}
+    .avatar {width:40px;height:40px;border-radius:50%;margin-right:10px;transition:0.3s;}
+    .username {font-size:18px;}
+    .team-shield {width:40px;height:40px;}
+    .settings {font-size:22px;color:#0ff;cursor:pointer;}
+    .crypto-bar {background:#333;border:2px solid orange;color:#fff;overflow-x:auto;white-space:nowrap;padding:10px;}
+    .crypto-item {display:inline-block;margin-right:20px;font-size:16px;}
+    .crypto-up {color:lime;}
+    .crypto-down {color:red;}
+    .btn {display:block;width:90%;margin:15px auto;padding:20px;font-size:20px;color:#fff;border:none;border-radius:10px;box-shadow:0 6px #000;cursor:pointer;transition:0.2s;}
+    .btn:active {box-shadow:0 2px #000;transform:translateY(4px);}
     .btn-games {background:linear-gradient(#1e90ff,#104e8b);}
     .btn-filmes {background:linear-gradient(#ff4500,#8b2500);}
     .btn-series {background:linear-gradient(#32cd32,#006400);}
     .btn-futebol {background:linear-gradient(#ffd700,#b8860b);}
     .btn-cripto {background:linear-gradient(#ffa500,#ff8c00);}
     .btn-trailers {background:linear-gradient(#9370db,#4b0082);}
-    .section {padding:20px;}
-    .ticker {background:#ffa500;color:#000;overflow:hidden;white-space:nowrap;}
-    .ticker span {display:inline-block;padding-right:50px;animation:scroll 30s linear infinite;}
-    @keyframes scroll {from{transform:translateX(100%);}to{transform:translateX(-100%);}}
-    .config {background:#d3d3d3;color:#549F78;padding:20px;}
-    .config a {color:#0ff;text-decoration:none;}
+    .banner {position:fixed;bottom:0;width:100%;background:#222;color:#fff;text-align:center;padding:10px;border-top:3px solid orange;}
+    .config-panel {display:none;position:fixed;top:0;right:0;width:250px;height:100%;background:#1a1a1a;color:#fff;padding:20px;border-left:3px solid orange;}
+    .config-panel h2 {color:#0ff;}
+    .config-panel input {margin-right:10px;}
+    .avatar.gol {box-shadow:0 0 15px lime;}
+    .avatar.amarelo {box-shadow:0 0 15px yellow;}
+    .avatar.vermelho {box-shadow:0 0 15px red;}
   </style>
 </head>
 <body>
-  <header>NEWS GEEK BRASIL</header>
+  <header>News Geek Brasil</header>
+
+  <!-- Barra de perfil -->
+  <div class="user-bar">
+    <div class="user-info">
+      <img src="assets/images/avatar.png" class="avatar" id="avatar">
+      <span class="username" id="username">Usuário</span>
+    </div>
+    <img src="assets/images/team-shield.png" class="team-shield" id="teamShield">
+    <i class="fa-solid fa-gear settings" onclick="toggleConfig()"></i>
+  </div>
+
+  <!-- Barra de criptomoedas -->
+  <div class="crypto-bar" id="cryptoBar">Carregando cotações...</div>
 
   <!-- Botões principais -->
   <button class="btn btn-games"><i class="fa-solid fa-gamepad"></i> Games</button>
@@ -39,28 +64,18 @@
   <button class="btn btn-cripto"><i class="fa-brands fa-bitcoin"></i> Criptomoedas</button>
   <button class="btn btn-trailers"><i class="fa-solid fa-video"></i> Trailers da Semana</button>
 
-  <!-- Criptomoedas -->
-  <div class="section" style="background:#ffa500;color:#000;">
-    <h2>Criptomoedas</h2>
-    <div class="ticker" id="cryptoTicker"><span>Carregando preços...</span></div>
-    <div id="crypto-news">
-      <marquee direction="up" scrollamount="2" height="200" id="cryptoFeed">
-        <p>Carregando notícias...</p>
-      </marquee>
-    </div>
-  </div>
-
   <!-- Configurações -->
-  <div class="config">
+  <div class="config-panel" id="configPanel">
     <h2>Configurações</h2>
-    <p><input type="checkbox" checked> Dark Mode</p>
-    <p><input type="checkbox" checked> Notificações internas</p>
-    <p><button>Trocar Avatar</button></p>
-    <p><button>Trocar Time Favorito</button></p>
-    <p>Política de Privacidade: <a href="https://drive.google.com/drive/folders/1IsfjqpfKfHM3XjzNi1pQMoX5PideW9Iq" target="_blank">Ver documento completo</a></p>
+    <p><input type="checkbox" id="notifToggle" checked> Notificações internas</p>
+    <p><input type="checkbox" id="soundToggle" checked> Som de gol</p>
+    <p>Política de Privacidade: <a href="https://drive.google.com/drive/folders/1IsfjqpfKfHM3XjzNi1pQMoX5PideW9Iq" target="_blank">Ver documento</a></p>
     <p>Contato: neozion.corp@gmail.com</p>
     <p>Sobre nós</p>
   </div>
+
+  <!-- Banner fixo -->
+  <div class="banner">Banner de monetização fixo</div>
 
   <!-- Áudio de gol -->
   <audio id="golAudio" src="assets/audio/gol.mp3" preload="auto"></audio>
@@ -70,57 +85,48 @@
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
       projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
       messagingSenderId: "YOUR_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
     firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-    // Login Google
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-      .then(result => {
-        const user = result.user;
-        console.log("Usuário logado:", user.displayName);
-      });
-
-    // Notificação de gol
-    function notifyGol() {
-      document.getElementById('golAudio').play();
-      alert("GOOOOL do seu time!");
+    // Configurações
+    function toggleConfig() {
+      const panel = document.getElementById("configPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
     }
 
-    // Conteúdo dinâmico: Criptomoedas via CoinGecko
-    async function loadCrypto() {
-      try {
-        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,cardano,dogecoin&vs_currencies=usd");
-        const data = await res.json();
-        document.getElementById("cryptoTicker").innerHTML =
-          `<span>BTC: $${data.bitcoin.usd} | ETH: $${data.ethereum.usd} | ADA: $${data.cardano.usd} | DOGE: $${data.dogecoin.usd}</span>`;
-      } catch(e) {
-        console.error("Erro ao carregar preços", e);
-      }
-    }
-    loadCrypto();
-    setInterval(loadCrypto, 300000); // Atualiza a cada 5 min
+    let notifAtivas = true;
+    let somGolAtivo = true;
 
-    // Conteúdo dinâmico: Notícias via Google News RSS
-    async function loadNews() {
-      try {
-        const res = await fetch("https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt");
-        const json = await res.json();
-        let html = "";
-        json.items.slice(0,8).forEach(a => {
-          html += `<p><img src="${a.enclosure?.link || 'https://via.placeholder.com/50'}" width="50"> ${a.title}</p>`;
+    document.getElementById("notifToggle").addEventListener("change", e => {
+      notifAtivas = e.target.checked;
+    });
+    document.getElementById("soundToggle").addEventListener("change", e => {
+      somGolAtivo = e.target.checked;
+    });
+
+    // Registrar token se notificações estiverem ativas
+    if (notifAtivas) {
+      messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
+        .then(token => {
+          console.log("Token de push:", token);
+          // Salve esse token no servidor para enviar notificações
         });
-        document.getElementById("cryptoFeed").innerHTML = html;
-      } catch(e) {
-        console.error("Erro ao carregar notícias", e);
-      }
     }
-    loadNews();
-  </script>
-</body>
-</html>
+
+    // Listener para notificações recebidas em primeiro plano
+    messaging.onMessage(payload => {
+      if (somGolAtivo) document.getElementById('golAudio').play();
+      alert(payload.notification.title + ": " + payload.notification.body);
+    });
+
+    // Avatar reativo
+    function eventoGol() {
+      const avatar = document.getElementById("avatar");
+      avatar.classList.add("gol");
+      if (somGolAtivo) document.getElementById("golAudio").play();
+      setTimeout(()=>avatar.classList.remove("gol"),2000);
+    }
