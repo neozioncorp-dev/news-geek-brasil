@@ -1,10 +1,34 @@
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Geek Brasil</title>
+<style>
+  body { font-family: sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+  #top-bar { padding: 8px; background: #222; color: #fff; display:flex; align-items:center; }
+  #feed { padding: 8px; }
+  .news-item { margin-bottom: 16px; border-radius:8px; overflow:hidden; background:#fff; padding:8px; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+  .trailer-banner { position:fixed; bottom:16px; left:16px; background:#fff; padding:8px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.3); display:flex; align-items:center; cursor:pointer;}
+  button { margin:4px; padding:6px 12px; }
+</style>
+</head>
+<body>
 
-  // Your web app's Firebase configuration
+<div id="top-bar">News Geek Brasil</div>
+<div id="feed"></div>
+<img id="user-avatar" style="width:32px;height:32px;border-radius:50%;margin:8px;">
+<button id="btn-home">Home</button>
+<button id="btn-back">Voltar</button>
+
+<!-- Firebase SDKs -->
+<script type="module">
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+  // Config Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDBxvbmmMSlOSzJMDMAISNjELLER90-Itw",
     authDomain: "news-geek-brasil.firebaseapp.com",
@@ -14,32 +38,25 @@
     appId: "1:275382580088:web:4d317851a905abe5058e8d"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-</script>
+  const auth = getAuth(app);
+  const database = getDatabase(app);
 
-<!-- CÓDIGO COMPLETO DO APP - COLE APÓS O SCRIPT DO FIREBASE -->
-
-<script>
-  // Inicialização do app já conectada ao Firebase (firebaseConfig deve estar acima)
+  let currentUser = null;
 
   // -------------------------------
   // LOGIN GOOGLE
   // -------------------------------
-  const auth = firebase.auth();
-  const database = firebase.database();
-  let currentUser = null;
-
-  function googleLogin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).then(result => {
+  window.googleLogin = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).then(result => {
       currentUser = result.user;
       initializeAppForUser();
-    }).catch(error => console.error(error));
-  }
+    }).catch(console.error);
+  };
 
   // -------------------------------
-  // INICIALIZAÇÃO DO APP PARA O USUÁRIO
+  // INICIALIZAÇÃO DO APP
   // -------------------------------
   function initializeAppForUser() {
     loadUserData();
@@ -57,27 +74,25 @@
   // -------------------------------
   // ESCOLHA DE TIME
   // -------------------------------
-  function chooseTeam(teamId, teamName, teamLogo) {
+  window.chooseTeam = (teamId, teamName, teamLogo) => {
     if (!currentUser) return;
-    database.ref('users/' + currentUser.uid + '/team').set({
+    set(ref(database, 'users/' + currentUser.uid + '/team'), {
       id: teamId,
       name: teamName,
       logo: teamLogo
     });
     alert(`Você selecionou o time ${teamName}!`);
     updateTeamInUI(teamLogo, teamName);
-  }
+  };
 
   function updateTeamInUI(logo, name) {
     const topBar = document.getElementById('top-bar');
-    if (topBar) {
-      topBar.innerHTML = `<img src="${logo}" style="width:32px;height:32px;margin-right:8px;"> ${name}`;
-    }
+    if (topBar) topBar.innerHTML = `<img src="${logo}" style="width:32px;height:32px;margin-right:8px;"> ${name}`;
   }
 
   function loadUserData() {
     if (!currentUser) return;
-    database.ref('users/' + currentUser.uid).once('value').then(snapshot => {
+    get(ref(database, 'users/' + currentUser.uid)).then(snapshot => {
       const data = snapshot.val();
       if (data && data.team) updateTeamInUI(data.team.logo, data.team.name);
       if (data && data.avatar) setAvatar(data.avatar);
@@ -94,14 +109,13 @@
       av.addEventListener('click', () => {
         avatarChoice = av.dataset.avatar;
         if (!currentUser) return;
-        database.ref('users/' + currentUser.uid + '/avatar').set(avatarChoice);
+        set(ref(database, 'users/' + currentUser.uid + '/avatar'), avatarChoice);
         reactAvatar(av);
       });
     });
   }
 
   function reactAvatar(av) {
-    // animação simples de reação ao clique
     av.style.transform = 'scale(1.2)';
     setTimeout(() => av.style.transform = 'scale(1)', 300);
   }
@@ -112,7 +126,7 @@
   }
 
   // -------------------------------
-  // FEED DE NOTÍCIAS COM SCROLL INFINITO
+  // FEED DE NOTÍCIAS
   // -------------------------------
   const feedContainer = document.getElementById('feed');
   let page = 0;
@@ -122,14 +136,13 @@
     if (loadingFeed) return;
     loadingFeed = true;
     fetchNews(page).then(newsItems => {
-      newsItems.forEach(item => addNewsItemToFeed(item));
+      newsItems.forEach(addNewsItemToFeed);
       page++;
       loadingFeed = false;
     });
   }
 
   function fetchNews(page) {
-    // Simula API de notícias brasileiras
     return new Promise(resolve => {
       const sampleNews = [
         {title:'Notícia A', img:'https://via.placeholder.com/150', category:'Futebol'},
@@ -154,7 +167,7 @@
   }
 
   // -------------------------------
-  // BOTÕES LIKE/DISLIKE
+  // BOTÕES
   // -------------------------------
   function setupButtons() {
     const likeButtons = document.querySelectorAll('.like-btn');
@@ -171,31 +184,6 @@
     }));
   }
 
-  // -------------------------------
-  // TRAILERS E INTERSTICIAIS
-  // -------------------------------
-  function showTrailerAlert(title, imageUrl) {
-    const banner = document.createElement('div');
-    banner.className = 'trailer-banner';
-    banner.innerHTML = `<img src="${imageUrl}" style="width:80px;height:45px;margin-right:8px;"> ${title}`;
-    banner.addEventListener('click', () => openTrailer(title));
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove(), 5000);
-  }
-
-  function openTrailer(title) {
-    alert(`Abrindo trailer: ${title}`);
-    // Aqui abriria a tela correspondente do app
-    showInterstitial();
-  }
-
-  function showInterstitial() {
-    alert('Exibindo intersticial para monetização');
-  }
-
-  // -------------------------------
-  // BOTÕES HOME E VOLTAR
-  // -------------------------------
   document.getElementById('btn-home').addEventListener('click', () => {
     window.scrollTo({top:0, behavior:'smooth'});
   });
@@ -203,4 +191,26 @@
   document.getElementById('btn-back').addEventListener('click', () => {
     window.history.back();
   });
+
+  // -------------------------------
+  // TRAILERS E INTERSTICIAIS
+  // -------------------------------
+  window.showTrailerAlert = (title, imageUrl) => {
+    const banner = document.createElement('div');
+    banner.className = 'trailer-banner';
+    banner.innerHTML = `<img src="${imageUrl}" style="width:80px;height:45px;margin-right:8px;"> ${title}`;
+    banner.addEventListener('click', () => openTrailer(title));
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 5000);
+  };
+
+  function openTrailer(title) {
+    alert(`Abrindo trailer: ${title}`);
+    showInterstitial();
+  }
+
+  function showInterstitial() {
+    alert('Exibindo intersticial para monetização');
+  }
+
 </script>
