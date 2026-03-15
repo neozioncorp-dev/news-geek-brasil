@@ -5,212 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>News Geek Brasil</title>
 <style>
-  body { font-family: sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
-  #top-bar { padding: 8px; background: #222; color: #fff; display:flex; align-items:center; }
-  #feed { padding: 8px; }
-  .news-item { margin-bottom: 16px; border-radius:8px; overflow:hidden; background:#fff; padding:8px; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-  .trailer-banner { position:fixed; bottom:16px; left:16px; background:#fff; padding:8px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.3); display:flex; align-items:center; cursor:pointer;}
-  button { margin:4px; padding:6px 12px; }
+  body { font-family: sans-serif; margin:0; padding:0; background:#f5f5f5;}
+  #top-bar { background:#222; color:#fff; padding:10px; display:flex; justify-content:space-between; align-items:center;}
+  #feed { padding:10px; display:flex; flex-direction:column; gap:10px;}
+  .news-item { background:#fff; padding:10px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+  .news-item img { width:100%; border-radius:8px;}
+  #avatars { display:flex; gap:10px; padding:10px;}
+  .avatar { width:50px; height:50px; cursor:pointer; border:2px solid transparent; border-radius:8px;}
+  .avatar.selected { border:2px solid #222;}
+  button { margin:5px; padding:5px 10px; cursor:pointer;}
 </style>
 </head>
 <body>
 
-<div id="top-bar">News Geek Brasil</div>
+<div id="top-bar">
+  News Geek Brasil
+  <div>
+    <button id="btn-home">Home</button>
+    <button id="btn-back">Voltar</button>
+  </div>
+</div>
+
+<div id="avatars">
+  <img src="https://via.placeholder.com/50/FF0000" class="avatar" data-avatar="Red">
+  <img src="https://via.placeholder.com/50/00FF00" class="avatar" data-avatar="Green">
+  <img src="https://via.placeholder.com/50/0000FF" class="avatar" data-avatar="Blue">
+</div>
+
 <div id="feed"></div>
-<img id="user-avatar" style="width:32px;height:32px;border-radius:50%;margin:8px;">
-<button id="btn-home">Home</button>
-<button id="btn-back">Voltar</button>
 
-<!-- Firebase SDKs -->
-<script type="module">
-  // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+<script>
+  // Feed de notícias
+  const feed = document.getElementById('feed');
+  const news = [
+    {title:'Notícia A', img:'https://via.placeholder.com/300x150', category:'Futebol'},
+    {title:'Notícia B', img:'https://via.placeholder.com/300x150', category:'Games'},
+    {title:'Notícia C', img:'https://via.placeholder.com/300x150', category:'Filmes'},
+    {title:'Notícia D', img:'https://via.placeholder.com/300x150', category:'Séries/Animes'}
+  ];
 
-  // Config Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDBxvbmmMSlOSzJMDMAISNjELLER90-Itw",
-    authDomain: "news-geek-brasil.firebaseapp.com",
-    projectId: "news-geek-brasil",
-    storageBucket: "news-geek-brasil.firebasestorage.app",
-    messagingSenderId: "275382580088",
-    appId: "1:275382580088:web:4d317851a905abe5058e8d"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const database = getDatabase(app);
-
-  let currentUser = null;
-
-  // -------------------------------
-  // LOGIN GOOGLE
-  // -------------------------------
-  window.googleLogin = () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).then(result => {
-      currentUser = result.user;
-      initializeAppForUser();
-    }).catch(console.error);
-  };
-
-  // -------------------------------
-  // INICIALIZAÇÃO DO APP
-  // -------------------------------
-  function initializeAppForUser() {
-    loadUserData();
-    showWelcomeMessage();
-    loadFeed();
-    setupAvatars();
-    setupButtons();
-  }
-
-  function showWelcomeMessage() {
-    if (!currentUser) return;
-    alert(`Bem-vindo ao News Geek Brasil, ${currentUser.displayName}! Esperamos que curta a experiência.`);
-  }
-
-  // -------------------------------
-  // ESCOLHA DE TIME
-  // -------------------------------
-  window.chooseTeam = (teamId, teamName, teamLogo) => {
-    if (!currentUser) return;
-    set(ref(database, 'users/' + currentUser.uid + '/team'), {
-      id: teamId,
-      name: teamName,
-      logo: teamLogo
-    });
-    alert(`Você selecionou o time ${teamName}!`);
-    updateTeamInUI(teamLogo, teamName);
-  };
-
-  function updateTeamInUI(logo, name) {
-    const topBar = document.getElementById('top-bar');
-    if (topBar) topBar.innerHTML = `<img src="${logo}" style="width:32px;height:32px;margin-right:8px;"> ${name}`;
-  }
-
-  function loadUserData() {
-    if (!currentUser) return;
-    get(ref(database, 'users/' + currentUser.uid)).then(snapshot => {
-      const data = snapshot.val();
-      if (data && data.team) updateTeamInUI(data.team.logo, data.team.name);
-      if (data && data.avatar) setAvatar(data.avatar);
-    });
-  }
-
-  // -------------------------------
-  // AVATARES 16-BIT
-  // -------------------------------
-  let avatarChoice = null;
-  function setupAvatars() {
-    const avatars = document.querySelectorAll('.avatar');
-    avatars.forEach(av => {
-      av.addEventListener('click', () => {
-        avatarChoice = av.dataset.avatar;
-        if (!currentUser) return;
-        set(ref(database, 'users/' + currentUser.uid + '/avatar'), avatarChoice);
-        reactAvatar(av);
-      });
-    });
-  }
-
-  function reactAvatar(av) {
-    av.style.transform = 'scale(1.2)';
-    setTimeout(() => av.style.transform = 'scale(1)', 300);
-  }
-
-  function setAvatar(av) {
-    const userAvatar = document.getElementById('user-avatar');
-    if (userAvatar) userAvatar.src = av;
-  }
-
-  // -------------------------------
-  // FEED DE NOTÍCIAS
-  // -------------------------------
-  const feedContainer = document.getElementById('feed');
-  let page = 0;
-  let loadingFeed = false;
-
-  function loadFeed() {
-    if (loadingFeed) return;
-    loadingFeed = true;
-    fetchNews(page).then(newsItems => {
-      newsItems.forEach(addNewsItemToFeed);
-      page++;
-      loadingFeed = false;
-    });
-  }
-
-  function fetchNews(page) {
-    return new Promise(resolve => {
-      const sampleNews = [
-        {title:'Notícia A', img:'https://via.placeholder.com/150', category:'Futebol'},
-        {title:'Notícia B', img:'https://via.placeholder.com/150', category:'Games'},
-        {title:'Notícia C', img:'https://via.placeholder.com/150', category:'Filmes'},
-        {title:'Notícia D', img:'https://via.placeholder.com/150', category:'Séries/Animes'}
-      ];
-      setTimeout(() => resolve(sampleNews), 500);
-    });
-  }
-
-  function addNewsItemToFeed(item) {
-    if (!feedContainer) return;
+  news.forEach(item => {
     const div = document.createElement('div');
-    div.className = 'news-item';
-    div.innerHTML = `
-      <img src="${item.img}" style="width:100%;border-radius:8px;">
-      <h3>${item.title}</h3>
-      <p>${item.category}</p>
-    `;
-    feedContainer.appendChild(div);
-  }
-
-  // -------------------------------
-  // BOTÕES
-  // -------------------------------
-  function setupButtons() {
-    const likeButtons = document.querySelectorAll('.like-btn');
-    const dislikeButtons = document.querySelectorAll('.dislike-btn');
-
-    likeButtons.forEach(btn => btn.addEventListener('click', () => {
-      btn.style.transform = 'scale(1.2)';
-      setTimeout(() => btn.style.transform = 'scale(1)', 200);
-    }));
-
-    dislikeButtons.forEach(btn => btn.addEventListener('click', () => {
-      btn.style.transform = 'scale(1.2)';
-      setTimeout(() => btn.style.transform = 'scale(1)', 200);
-    }));
-  }
-
-  document.getElementById('btn-home').addEventListener('click', () => {
-    window.scrollTo({top:0, behavior:'smooth'});
+    div.className='news-item';
+    div.innerHTML = `<img src="${item.img}"><h3>${item.title}</h3><p>${item.category}</p>`;
+    feed.appendChild(div);
   });
 
-  document.getElementById('btn-back').addEventListener('click', () => {
-    window.history.back();
+  // Avatares
+  const avatars = document.querySelectorAll('.avatar');
+  avatars.forEach(av => {
+    av.addEventListener('click', () => {
+      avatars.forEach(a=>a.classList.remove('selected'));
+      av.classList.add('selected');
+      alert('Avatar selecionado: '+av.dataset.avatar);
+    });
   });
 
-  // -------------------------------
-  // TRAILERS E INTERSTICIAIS
-  // -------------------------------
-  window.showTrailerAlert = (title, imageUrl) => {
-    const banner = document.createElement('div');
-    banner.className = 'trailer-banner';
-    banner.innerHTML = `<img src="${imageUrl}" style="width:80px;height:45px;margin-right:8px;"> ${title}`;
-    banner.addEventListener('click', () => openTrailer(title));
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove(), 5000);
-  };
-
-  function openTrailer(title) {
-    alert(`Abrindo trailer: ${title}`);
-    showInterstitial();
-  }
-
-  function showInterstitial() {
-    alert('Exibindo intersticial para monetização');
-  }
-
+  // Botões
+  document.getElementById('btn-home').addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));
+  document.getElementById('btn-back').addEventListener('click', ()=>window.history.back());
 </script>
+
+</body>
+</html>
